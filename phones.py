@@ -1,85 +1,99 @@
-class ExNameExist(Exception):
+class ExPhoneBook(Exception):
+    pass
+
+
+class ExNameExist(ExPhoneBook):
     def __init__(self, user_name, phone_number):
         self.name = user_name
         self.phone = phone_number
 
 
-class ExNameNotExist(Exception):
+class ExNameNotExist(ExPhoneBook):
     def __init__(self, user_name):
         self.name = user_name
 
 
-class ExEmptyList(Exception):
+class ExEmptyList(ExPhoneBook):
     pass
 
 
-phonelist = {}
+phone_book = {}
 
 
-def add(user_name, phone_number):
-    if user_name in phonelist:
-        raise ExNameExist(user_name, phonelist[user_name])
+def input_user_name():
+    user_name = input('Enter a user name:\n')
+    return user_name
+
+
+def input_user_phone():
+    phone_number = input('Enter a user phone number:\n')
+    return phone_number
+
+
+def create_record():  # Crud (Model)
+    user_name = input_user_name()
+    phone_number = input_user_phone()
+    if user_name in phone_book:
+        raise ExNameExist(user_name, phone_book[user_name])
     else:
-        phonelist[user_name] = phone_number
+        phone_book[user_name] = phone_number
 
 
-def get(user_name):
+def read_record():  # cRud (Model)
+    user_name = input_user_name()
     try:
-        return (user_name, phonelist[user_name])
+        phone_number = phone_book[user_name]
+        print('{} : {}'.format(user_name, phone_number))
     except KeyError:
         raise ExNameNotExist(user_name)
 
 
-def listdir():
-    if phonelist:
-        return phonelist
+def update_record():  # crUd (Model)
+    user_name = input_user_name()
+    if user_name in phone_book:
+        phone_number = input_user_phone()
+        phone_book[user_name] = phone_number
+    else:
+        raise ExNameNotExist(user_name)
+
+
+def delete_record():  # cruD
+    user_name = input_user_name()
+    try:
+        phone_book.pop(user_name)
+    except KeyError:
+        raise ExNameNotExist(user_name)
+
+
+def read_all():
+    if phone_book:
+        for name in phone_book:
+            print('{} : {}'.format(name, phone_book[name]))
     else:
         raise ExEmptyList()
 
 
-def update(user_name, phone_number):
-    if user_name in phonelist:
-        phonelist[user_name] = phone_number
-    else:
-        raise ExNameNotExist(user_name)
+def default():
+    print("Incorrect input")
 
-
-def del_user(user_name):
-    try:
-        phonelist.pop(user_name)
-    except KeyError:
-        raise ExNameNotExist(user_name)
-
-
-def inun():
-    user_name = input('Enter a user name:\n')
-    return user_name
-
-def inup():
-    phone_number = input('Enter a user phone number:\n')
-    return phone_number
+execute = {'c': create_record,
+           'u': update_record,
+           'd': delete_record,
+           's': read_record,
+           'l': read_all}
 
 while True:
-    command = input('Enter a command (c, u, d, s, l) or exit for exit: \n')
+    command = input('Enter a command (c, u, d, s, l) or q for exit: \n')
     try:
-        if command == 'c':
-            add(inun(), inup())
-        elif command == 'u':
-            update(inun(), inup())
-        elif command == 'd':
-            del_user(inun())
-        elif command == 's':
-            print('%s:%s'% get(inun()))
-        elif command == 'l':
-            l = listdir()
-            for name in l:
-                print('%s:%s'% (name, l[name]))
-        elif command == 'exit':
+        if command == 'q':
             print("Have a nice day!")
             break
+        else:
+            execute.get(command, default)()
+
     except ExNameNotExist as E:
-        print('User not %s exist ' % E.name)
+        print('User %s not exist ' % E.name)
     except ExNameExist as E:
-        print('User already exist %s:%s' %(E.name, E.phone))
+        print('User already exist: %s : %s' %(E.name, E.phone))
     except ExEmptyList as E:
         print('Phone list is empty')
