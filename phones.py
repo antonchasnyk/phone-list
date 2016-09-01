@@ -1,23 +1,46 @@
+import pickle
+FILE_NAME = 'phone_book.pickle'
+
 class ExPhoneBook(Exception):
     pass
-
 
 class ExNameExist(ExPhoneBook):
     def __init__(self, user_name, phone_number):
         self.name = user_name
         self.phone = phone_number
 
-
 class ExNameNotExist(ExPhoneBook):
     def __init__(self, user_name):
         self.name = user_name
-
 
 class ExEmptyList(ExPhoneBook):
     pass
 
 
-phone_book = {}
+def write_file(filename):
+    with open(filename, 'wb') as f:
+        pickle.dump(phone_book, f)
+
+
+def save_to_file(filename):
+    def inner(fn):
+        def wrapper(*args, **kwargs):
+            res = fn(*args, **kwargs)
+            write_file(filename)
+            return res
+        return wrapper
+    return inner
+
+
+def read_file(filename):
+    try:
+        with open(filename, 'rb') as f:
+            phone_book = pickle.load(f)
+    except (FileNotFoundError, pickle.UnpicklingError):
+        return {}
+    if phone_book:
+        return phone_book
+    return {}
 
 
 def input_user_name():
@@ -30,6 +53,7 @@ def input_user_phone():
     return phone_number
 
 
+@save_to_file(FILE_NAME)
 def create_record():  # Crud (Model)
     user_name = input_user_name()
     phone_number = input_user_phone()
@@ -48,6 +72,7 @@ def read_record():  # cRud (Model)
         raise ExNameNotExist(user_name)
 
 
+@save_to_file(FILE_NAME)
 def update_record():  # crUd (Model)
     user_name = input_user_name()
     if user_name in phone_book:
@@ -57,6 +82,7 @@ def update_record():  # crUd (Model)
         raise ExNameNotExist(user_name)
 
 
+@save_to_file(FILE_NAME)
 def delete_record():  # cruD
     user_name = input_user_name()
     try:
@@ -82,6 +108,8 @@ execute = {'c': create_record,
            's': read_record,
            'l': read_all}
 
+
+phone_book = read_file('phone_book.pickl')
 while True:
     command = input('Enter a command (c, u, d, s, l) or q for exit: \n')
     try:
