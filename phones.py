@@ -17,30 +17,13 @@ class ExEmptyList(ExPhoneBook):
     pass
 
 
-def write_file(filename):
-    with open(filename, 'wb') as f:
-        pickle.dump(phone_book, f)
-
-
-def save_to_file(filename):
-    def inner(fn):
-        def wrapper(*args, **kwargs):
-            res = fn(*args, **kwargs)
-            write_file(filename)
-            return res
-        return wrapper
-    return inner
-
-
-def read_file(filename):
-    try:
-        with open(filename, 'rb') as f:
-            phone_book = pickle.load(f)
-    except (FileNotFoundError, pickle.UnpicklingError):
-        return {}
-    if phone_book:
-        return phone_book
-    return {}
+def save_to_file(fn):
+    def wrapper(self, *args, **kwargs):
+        res = fn(self, *args, **kwargs)
+        with open(self.file_name, 'wb') as f:
+            pickle.dump(self._contacts, f)
+        return res
+    return wrapper
 
 
 def input_user_name():
@@ -53,63 +36,72 @@ def input_user_phone():
     return phone_number
 
 
-@save_to_file(FILE_NAME)
-def create_record():  # Crud (Model)
-    user_name = input_user_name()
-    phone_number = input_user_phone()
-    if user_name in phone_book:
-        raise ExNameExist(user_name, phone_book[user_name])
-    else:
-        phone_book[user_name] = phone_number
+class Contacts:
 
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self._contacts = {}
 
-def read_record():  # cRud (Model)
-    user_name = input_user_name()
-    try:
-        phone_number = phone_book[user_name]
-        print('{} : {}'.format(user_name, phone_number))
-    except KeyError:
-        raise ExNameNotExist(user_name)
+    def load_contacts_from_file(self):
+        try:
+            with open(self.file_name, 'rb') as f:
+                self._contacts = pickle.load(f)
+        except (FileNotFoundError, pickle.UnpicklingError):
+            self._contacts = {}
 
-
-@save_to_file(FILE_NAME)
-def update_record():  # crUd (Model)
-    user_name = input_user_name()
-    if user_name in phone_book:
+    @save_to_file
+    def add_contact(self):
+        user_name = input_user_name()
         phone_number = input_user_phone()
-        phone_book[user_name] = phone_number
-    else:
-        raise ExNameNotExist(user_name)
+        if user_name in self._contacts:
+            raise ExNameExist(user_name, phone_book[user_name])
+        else:
+            self._contacts[user_name] = phone_number
 
+    @save_to_file
+    def update_contact(self):
+        user_name = input_user_name()
+        if user_name in self._contacts:
+            phone_number = input_user_phone()
+            self._contacts[user_name] = phone_number
+        else:
+            raise ExNameNotExist(user_name)
 
-@save_to_file(FILE_NAME)
-def delete_record():  # cruD
-    user_name = input_user_name()
-    try:
-        phone_book.pop(user_name)
-    except KeyError:
-        raise ExNameNotExist(user_name)
+    @save_to_file
+    def delete_record(self):  # cruD
+        user_name = input_user_name()
+        try:
+            self._contacts.pop(user_name)
+        except KeyError:
+            raise ExNameNotExist(user_name)
 
+    def read_record(self):  # cRud (Model)
+        user_name = input_user_name()
+        try:
+            phone_number = self._contacts[user_name]
+            return '{} : {}'.format(user_name, phone_number)
+        except KeyError:
+            raise ExNameNotExist(user_name)
 
-def read_all():
-    if phone_book:
-        for name in phone_book:
-            print('{} : {}'.format(name, phone_book[name]))
-    else:
-        raise ExEmptyList()
+    def read_all(self):
+        if self._contacts:
+            for name in self._contacts:
+                print('{} : {}'.format(name, self._contacts[name]))
+        else:
+            raise ExEmptyList()
 
 
 def default():
     print("Incorrect input")
 
-execute = {'c': create_record,
-           'u': update_record,
-           'd': delete_record,
-           's': read_record,
-           'l': read_all}
+phone_book = Contacts('phone_book.pickl')
 
+execute = {'c': phone_book.add_contact,
+           'u': phone_book.update_contact,
+           'd': phone_book.delete_record,
+           's': phone_book.read_record,
+           'l': phone_book.read_all}
 
-phone_book = read_file('phone_book.pickl')
 while True:
     command = input('Enter a command (c, u, d, s, l) or q for exit: \n')
     try:
