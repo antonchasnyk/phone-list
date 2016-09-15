@@ -40,7 +40,7 @@ class Contacts:
 
     def __init__(self, file_name):
         self.file_name = file_name
-        self._contacts = {}
+        self._contacts = []
 
     def load_contacts_from_file(self):
         try:
