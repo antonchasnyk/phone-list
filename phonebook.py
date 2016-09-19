@@ -140,8 +140,8 @@ class Controller:
         new_contact = Contact(name, phone)
         try:
             self._contacts.append(new_contact)
-            view.show('Contact successfully created.')
-            view.show(self._contacts[name])
+            self.view.show('Contact successfully created.')
+            self.view.show(self._contacts[name])
         except ExContactAlreadyExist as E:
             self.view.show_error(E)
 
@@ -152,8 +152,8 @@ class Controller:
             c = self._contacts[name]
             phone = view.input('phone')
             self._contacts.change_phone(name, phone)
-            view.show('Contact successfully updated.')
-            view.show(self._contacts[name])
+            self.view.show('Contact successfully updated.')
+            self.view.show(self._contacts[name])
         except ExContactDoesNotExist as E:
             view.show_error(E)
 
@@ -162,18 +162,18 @@ class Controller:
         name = view.input('name')
         try:
             self._contacts.delete_item(name)
-            view.show('Contact {} successfully removed.'.format(name))
+            self.view.show('Contact {} successfully removed.'.format(name))
         except ExContactDoesNotExist as E:
-            view.show_error(E)
+            self.view.show_error(E)
 
     def find_contact(self):
         """Find contact in phone book by his name"""
-        name = view.input('name')
+        name = self.view.input('name')
         try:
             c = self._contacts[name]
-            view.show(c)
+            self.view.show(c)
         except ExContactDoesNotExist as E:
-            view.show_error(E)
+            self.view.show_error(E)
 
     def find_all(self):
         """Display all contacts"""
@@ -188,7 +188,7 @@ class Controller:
 
     def help(self):
         """Show help"""
-        view.show(self.get_help())
+        self.view.show(self.get_help())
 
     def get_help(self):
         return '\n'.join("Use '{}' -> {}".format(key, self._commands[key].__doc__)for key in self._commands)
@@ -196,9 +196,9 @@ class Controller:
     def run(self):
         self.help()
         while True:
-            command = view.get_input()
+            command = self.view.get_input()
             if command == 'q':
-                view.show("Have a nice day!")
+                self.view.show("Have a nice day!")
                 break
             else:
                 self._commands.get(command, self._default)()
@@ -209,11 +209,11 @@ class View:
         self.ERROR_FORMAT = "ERROR! {}"
 
     @staticmethod
-    def check_name(self, name):
+    def check_name(name):
         return bool(name)
 
     @staticmethod
-    def check_phone(self, phone):
+    def check_phone(phone):
         return bool(phone)
 
     def input(self, key):
@@ -225,8 +225,8 @@ class View:
                 else:
                     print('Please Enter correct name')
 
-        elif key =='phone':
-             while True:
+        elif key == 'phone':
+            while True:
                 tmp = input('Please enter a phone: ')
                 if self.check_phone(tmp):
                     return tmp
@@ -237,11 +237,11 @@ class View:
         print(self.ERROR_FORMAT.format(error))
 
     @staticmethod
-    def show(self, message):
+    def show(message):
         print(message)
 
     @staticmethod
-    def get_input(self):
+    def get_input():
         return input('Enter a command (c, u, d, s, l, h) or q for exit: \n')
 
 
