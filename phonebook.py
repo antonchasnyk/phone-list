@@ -206,7 +206,7 @@ class Controller:
 
 class View:
     def __init__(self):
-        self.ERROR_FORMAT = "ERROR! {}"
+        self.ERROR_FORMAT = "ERROR!!! {}"
 
     @staticmethod
     def check_name(name):
