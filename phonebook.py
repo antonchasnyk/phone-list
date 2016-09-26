@@ -1,122 +1,7 @@
-import pickle
+from console_view import *
+from contacts import *
+
 import collections
-
-
-class ExPhoneBook(Exception):
-    def __init__(self, format_string, name, *args, **kwargs):
-        super().__init__(str, *args, **kwargs)
-        self.format_string = format_string
-        self.name = name
-
-    def __str__(self):
-        return self.format_string.format(self.name)
-
-
-class ExContactAlreadyExist(ExPhoneBook):
-    pass
-
-
-class ExContactDoesNotExist(ExPhoneBook):
-    pass
-
-
-class Contact:
-    def __init__(self, name, phone):
-        self._name = name
-        self._phone = phone
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def phone(self):
-        return self._phone
-
-    def _change_phone(self, value):
-        self._phone = value
-
-    @phone.deleter
-    def phone(self):
-        raise KeyError('Readonly attribute')
-
-    def __eq__(self, other):
-        if isinstance(other, str):     # TODO: при вызове "in" первый раз приходит 2 класса после расчета хеша приходит
-            return self.name == other  # TODO: класс и сторка
-        if 'name' in other.__dict__:
-            return self.name == other.name
-        return NotImplemented
-
-    def __lt__(self, other):
-        if isinstance(other, str):
-            return self.name < other
-        if 'name' in other.__dict__:
-            return self.name < other.name
-        return NotImplemented
-
-    def __hash__(self):
-        return hash(self._name)
-
-    def __repr__(self):
-        return "{}('{}', '{}')".format(type(self).__name__, self.name, self.phone)
-
-    def __str__(self):
-        return '{:.<20}{:.>20}'.format(self.name, self.phone)
-
-
-class Contacts:
-    def __init__(self, filename):
-        self.file_name = filename
-        self._contacts = self.load()
-
-    def load(self):
-        try:
-            with open(self.file_name, 'rb') as f:
-                return pickle.load(f)
-        except (FileNotFoundError, pickle.UnpicklingError):
-            return {}
-
-    def save_all(self):
-        with open(self.file_name, 'wb') as f:
-            pickle.dump(self._contacts, f)
-
-    def append(self, p_object):
-        if p_object in self._contacts:
-            raise ExContactAlreadyExist('Contact {} already exist', p_object.name)
-        self._contacts[p_object.name] = p_object
-        self.save_all()
-
-    def change_phone(self, name, phone):
-        self._contacts[name]._change_phone(phone) # TODO важно что поле может изменять только через контейнер
-        self.save_all()                           # TODO так как оно может быть не сохранено
-
-    def delete_item(self, name):
-        try:
-            del self._contacts[name]
-            self.save_all()
-        except KeyError:
-            raise ExContactDoesNotExist('Contact {} does not exist', name)
-
-    def __getitem__(self, name):
-        try:
-            return self._contacts[name]
-        except KeyError:
-            raise ExContactDoesNotExist('Contact {} does not exist', name)
-
-    def __contains__(self, item):
-        return item.name in self._contacts
-
-    def __bool__(self):
-        if self._contacts:
-            return True
-        return False
-
-    def __iter__(self):
-        for contact in self._contacts:
-            yield self._contacts[contact]
-
-    def __str__(self):
-        return str([(name, self._contacts[name].phone) for name in self._contacts])
 
 
 class Controller:
@@ -178,7 +63,9 @@ class Controller:
     def find_all(self):
         """Display all contacts"""
         if self._contacts:
-            for contact in self._contacts:
+            print(self._contacts)
+            print(self._contacts['Vas'] < self._contacts['anton'])
+            for contact in sorted(self._contacts):
                 self.view.show(contact)
         else:
             self.view.show('Phone book is empty.')
@@ -202,47 +89,6 @@ class Controller:
                 break
             else:
                 self._commands.get(command, self._default)()
-
-
-class View:
-    def __init__(self):
-        self.ERROR_FORMAT = "ERROR!!! {}"
-
-    @staticmethod
-    def check_name(name):
-        return bool(name)
-
-    @staticmethod
-    def check_phone(phone):
-        return bool(phone)
-
-    def input(self, key):
-        if key == 'name':
-            while True:
-                tmp = input('Please enter a name: ')
-                if self.check_name(tmp):
-                    return tmp
-                else:
-                    print('Please Enter correct name')
-
-        elif key == 'phone':
-            while True:
-                tmp = input('Please enter a phone: ')
-                if self.check_phone(tmp):
-                    return tmp
-                else:
-                    print('Please Enter correct phone number')
-
-    def show_error(self, error):
-        print(self.ERROR_FORMAT.format(error))
-
-    @staticmethod
-    def show(message):
-        print(message)
-
-    @staticmethod
-    def get_input():
-        return input('Enter a command (c, u, d, s, l, h) or q for exit: \n')
 
 
 if __name__ == '__main__':
