@@ -36,7 +36,9 @@ class Controller:
         try:
             c = self._contacts[name]
             phone = view.input('phone')
-            self._contacts.change_phone(name, phone)
+            new = Contact(c.name, phone)
+            self._contacts.delete_item(c.name)
+            self._contacts.append(new)
             self.view.show('Contact successfully updated.')
             self.view.show(self._contacts[name])
         except ExContactDoesNotExist as E:

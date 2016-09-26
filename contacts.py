@@ -34,11 +34,12 @@ class Contact:
     def phone(self):
         return self._phone
 
-    def _change_phone(self, value):
-        self._phone = value
-
     @phone.deleter
     def phone(self):
+        raise KeyError('Readonly attribute')
+
+    @name.deleter
+    def name(self):
         raise KeyError('Readonly attribute')
 
     def __eq__(self, other):
@@ -85,11 +86,6 @@ class Contacts:
         if p_object in self._contacts:
             raise ExContactAlreadyExist('Contact {} already exist', p_object.name)
         self._contacts[p_object.name] = p_object
-        self.save_all()
-
-    def change_phone(self, name, phone):
-        self.delete_item(name)
-        self.append(Contact(name, phone))
         self.save_all()
 
     def delete_item(self, name):
