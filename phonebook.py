@@ -1,32 +1,65 @@
-from console_view import *
+from views import *
 from contacts import *
+from abc import abstractmethod, ABC
 
 import collections
 
 
-class Controller:
-    def __init__(self, view, file_storage):
+class AbstractController(ABC):
+
+    def __init__(self, view, crud):
         self.view = view
-        self._contacts = Contacts(file_storage)
+        self.crud = crud
+
+    @abstractmethod
+    def create_new_contact(self):
+        pass
+
+    @abstractmethod
+    def update_contact(self):
+        pass
+
+    @abstractmethod
+    def update_contact(self):
+        pass
+
+    @abstractmethod
+    def delete_contact(self):
+        pass
+
+    @abstractmethod
+    def find_contact(self):
+        pass
+
+    @abstractmethod
+    def find_all(self):
+        pass
+
+    @abstractmethod
+    def run(self):
+        pass
+
+
+class Controller(AbstractController):
+    def __init__(self, view, file_storage):
+        super().__init__(view, file_storage)
         # noinspection PyArgumentList
         self._commands = collections.OrderedDict([
             ('c', self.create_new_contact),
             ('u', self.update_contact),
             ('d', self.delete_contact),
             ('s', self.find_contact),
-            ('l', self.find_all),
-            ('h', self.help)
+            ('l', self.find_all)
         ])
 
     def create_new_contact(self):
         """Create new contact in phone book"""
         name = self.view.input('name')
         phone = self.view.input('phone')
-        new_contact = Contact(name, phone)
         try:
-            self._contacts.append(new_contact)
+            res = crud.create(name, phone)
             self.view.show('Contact successfully created.')
-            self.view.show(self._contacts[name])
+            self.view.show(res)
         except ExContactAlreadyExist as E:
             self.view.show_error(E)
 
@@ -34,13 +67,9 @@ class Controller:
         """Change phone number by contact name"""
         name = view.input('name')
         try:
-            c = self._contacts[name]
-            phone = view.input('phone')
-            new = Contact(c.name, phone)
-            self._contacts.delete_item(c.name)
-            self._contacts.append(new)
+            res = crud.update(name, view.input)
             self.view.show('Contact successfully updated.')
-            self.view.show(self._contacts[name])
+            self.view.show(res)
         except ExContactDoesNotExist as E:
             view.show_error(E)
 
@@ -48,7 +77,7 @@ class Controller:
         """Delete item from phone book"""
         name = view.input('name')
         try:
-            self._contacts.delete_item(name)
+            crud.delete(name)
             self.view.show('Contact {} successfully removed.'.format(name))
         except ExContactDoesNotExist as E:
             self.view.show_error(E)
@@ -57,20 +86,18 @@ class Controller:
         """Find contact in phone book by his name"""
         name = self.view.input('name')
         try:
-            c = self._contacts[name]
-            self.view.show(c)
+            res = crud.find(name)
+            self.view.show(res)
         except ExContactDoesNotExist as E:
             self.view.show_error(E)
 
     def find_all(self):
         """Display all contacts"""
-        if self._contacts:
-            print(self._contacts)
-            print(self._contacts['Vas'] < self._contacts['anton'])
-            for contact in sorted(self._contacts):
-                self.view.show(contact)
-        else:
-            self.view.show('Phone book is empty.')
+        try:
+            res = crud.find_all()
+            self.view.show(res)
+        except ExContactBookEmpty  as E:
+            self.view.show(E)
 
     def _default(self):
         self.view.show_error('Incorrect command!\n{}'.format(self.get_help()))
@@ -89,11 +116,14 @@ class Controller:
             if command == 'q':
                 self.view.show("Have a nice day!")
                 break
+            elif command == 'h':
+                self.help()
             else:
                 self._commands.get(command, self._default)()
 
 
 if __name__ == '__main__':
-    view = View()
-    controller = Controller(view, 'storage.pickle')
+    view = ConsoleView()
+    crud = FileCRUD('storage.pickle')
+    controller = Controller(view, crud)
     controller.run()

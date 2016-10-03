@@ -1,6 +1,7 @@
 import pickle
+from abc import ABC, abstractmethod
 
-__all__ = ['ExContactAlreadyExist', 'ExContactDoesNotExist', 'Contact', 'Contacts']
+__all__ = ['ExContactBookEmpty','ExContactAlreadyExist', 'ExContactDoesNotExist', 'Contact', 'Contacts', 'FileCRUD']
 
 
 class ExPhoneBook(Exception):
@@ -20,6 +21,8 @@ class ExContactAlreadyExist(ExPhoneBook):
 class ExContactDoesNotExist(ExPhoneBook):
     pass
 
+class ExContactBookEmpty(ExPhoneBook):
+    pass
 
 class Contact:
     def __init__(self, name, phone):
@@ -115,3 +118,62 @@ class Contacts:
 
     def __str__(self):
         return str([(name, self._contacts[name].phone) for name in self._contacts])
+
+
+class AbstractCRUD(ABC):
+    @abstractmethod
+    def create(self, name, phone):
+        pass
+
+    @abstractmethod
+    def update(self, name, inputer):
+        pass
+
+    @abstractmethod
+    def delete(self, name):
+        pass
+
+    @abstractmethod
+    def find(self, name):
+        pass
+
+    @abstractmethod
+    def find_all(self):
+        pass
+
+
+class FileCRUD:
+    def __init__(self, file_storage):
+        self._contacts = Contacts(file_storage)
+
+    def create(self, name, phone):
+        new_contact = Contact(name, phone)
+        self._contacts.append(new_contact)
+        return str(self._contacts[name])
+
+    def update(self, name, inputer):
+        c = self._contacts[name]
+        phone = inputer('phone')
+        new = Contact(c.name, phone)
+        self._contacts.delete_item(c.name)
+        self._contacts.append(new)
+        return self._contacts[name]
+
+    def delete(self, name):
+        self._contacts.delete_item(name)
+
+    def find(self, name):
+        c = self._contacts[name]
+        return str(c)
+
+    def find_all(self):
+        if self._contacts:
+            res = []
+            for contact in sorted(self._contacts):
+                res.append(str(contact))
+            return '\n'.join(res)
+        else:
+            raise ExContactBookEmpty('Phone book is empty.')
+
+
+
