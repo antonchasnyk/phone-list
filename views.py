@@ -58,7 +58,6 @@ class ConsoleView(AbstractView):
         return input('Enter a command h for help or q for exit: \n')
 
 
-
 class IPView(AbstractView):
     def __init__(self):
         super().__init__()

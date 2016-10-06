@@ -171,7 +171,7 @@ class FileCRUD:
             res = []
             for contact in sorted(self._contacts):
                 res.append(str(contact))
-            return '\n'.join(res)
+            return tuple(res)
         else:
             raise ExContactBookEmpty('Phone book is empty.')
 

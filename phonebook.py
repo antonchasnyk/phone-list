@@ -95,7 +95,7 @@ class Controller(AbstractController):
         """Display all contacts"""
         try:
             res = crud.find_all()
-            self.view.show(res)
+            self.view.show('\n'.join(res))
         except ExContactBookEmpty  as E:
             self.view.show(E)
 
