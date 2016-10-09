@@ -1,7 +1,8 @@
 import pickle
 from abc import ABC, abstractmethod
 
-__all__ = ['ExContactBookEmpty','ExContactAlreadyExist', 'ExContactDoesNotExist', 'Contact', 'Contacts', 'FileCRUD']
+__all__ = ['ExContactBookEmpty','ExContactAlreadyExist', 'ExContactDoesNotExist', 'Contact', 'Contacts', 'FileCRUD',
+           'DBCRUD']
 
 
 class ExPhoneBook(Exception):
@@ -21,8 +22,10 @@ class ExContactAlreadyExist(ExPhoneBook):
 class ExContactDoesNotExist(ExPhoneBook):
     pass
 
+
 class ExContactBookEmpty(ExPhoneBook):
     pass
+
 
 class Contact:
     def __init__(self, name, phone):
@@ -120,6 +123,59 @@ class Contacts:
         return str([(name, self._contacts[name].phone) for name in self._contacts])
 
 
+class DBContacts:
+    def __init__(self, db_name):
+        import sqlite3
+        import collections
+        self.connection = sqlite3.connect(database='{}.sqlite3'.format(db_name))
+        self.User = collections.namedtuple('User', 'name, phone')
+
+    def append(self, p_object):
+        rows = self.connection.execute("select * from phones  where name = '{}'".format(p_object.name))
+        if rows.fetchone():
+            raise ExContactAlreadyExist('Contact {} already exist', p_object.name)
+        self.connection.execute("insert into phones (name, phone) values ('{}', '{}')".format(p_object.name, p_object.phone))
+        self.connection.commit()
+
+    def delete_item(self, name):
+        rows = self.connection.execute("select * from phones  where name = '{}'".format(name))
+        u = self.User._make(rows.fetchone())
+        if u:
+            self.connection.execute("delete from phones where name = '{}'".format(name))
+            self.connection.commit()
+        else:
+            raise ExContactDoesNotExist('Contact {} does not exist', name)
+
+    def __getitem__(self, name):
+        rows = self.connection.execute("select * from phones  where name = '{}'".format(name))
+        u = self.User._make(rows.fetchone())
+        if u:
+            return Contact(u.name, u.phone)
+        else:
+            raise ExContactDoesNotExist('Contact {} does not exist', name)
+
+    def __contains__(self, item):
+        rows = self.connection.execute("select * from phones  where name = '{}'".format(item.name))
+        u = self.User._make(rows.fetchone())
+        if u:
+            return True
+        else:
+            return False
+
+    def __bool__(self):
+        rows = self.connection.execute("select * from phones")
+        if rows.fetchone():
+            return True
+        return False
+
+    def __iter__(self):
+        rows = self.connection.execute("select * from phones")
+        rows = rows.fetchall()
+        for u in rows:
+            t = self.User._make(u)
+            yield Contact(t.name, t.phone)
+
+
 class AbstractCRUD(ABC):
     @abstractmethod
     def create(self, name, phone):
@@ -174,6 +230,11 @@ class FileCRUD:
             return tuple(res)
         else:
             raise ExContactBookEmpty('Phone book is empty.')
+
+
+class DBCRUD(FileCRUD):
+    def __init__(self):
+        self._contacts = DBContacts('phonebook')
 
 
 

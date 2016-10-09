@@ -57,7 +57,7 @@ class Controller(AbstractController):
         name = self.view.input('name')
         phone = self.view.input('phone')
         try:
-            res = crud.create(name, phone)
+            res = self.crud.create(name, phone)
             self.view.show('Contact successfully created.')
             self.view.show(res)
         except ExContactAlreadyExist as E:
@@ -67,7 +67,7 @@ class Controller(AbstractController):
         """Change phone number by contact name"""
         name = view.input('name')
         try:
-            res = crud.update(name, view.input)
+            res = self.crud.update(name, view.input)
             self.view.show('Contact successfully updated.')
             self.view.show(res)
         except ExContactDoesNotExist as E:
@@ -77,7 +77,7 @@ class Controller(AbstractController):
         """Delete item from phone book"""
         name = view.input('name')
         try:
-            crud.delete(name)
+            self.crud.delete(name)
             self.view.show('Contact {} successfully removed.'.format(name))
         except ExContactDoesNotExist as E:
             self.view.show_error(E)
@@ -86,7 +86,7 @@ class Controller(AbstractController):
         """Find contact in phone book by his name"""
         name = self.view.input('name')
         try:
-            res = crud.find(name)
+            res = self.crud.find(name)
             self.view.show(res)
         except ExContactDoesNotExist as E:
             self.view.show_error(E)
@@ -94,7 +94,7 @@ class Controller(AbstractController):
     def find_all(self):
         """Display all contacts"""
         try:
-            res = crud.find_all()
+            res = self.crud.find_all()
             self.view.show('\n'.join(res))
         except ExContactBookEmpty  as E:
             self.view.show(E)
@@ -124,6 +124,7 @@ class Controller(AbstractController):
 
 if __name__ == '__main__':
     view = ConsoleView()
-    crud = FileCRUD('storage.pickle')
-    controller = Controller(view, crud)
+#    crud = FileCRUD('storage.pickle')
+    dbcrud = DBCRUD()
+    controller = Controller(view, dbcrud)
     controller.run()
