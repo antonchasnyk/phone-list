@@ -177,30 +177,7 @@ class DBContacts:
 
 
 class AbstractCRUD(ABC):
-    @abstractmethod
-    def create(self, name, phone):
-        pass
-
-    @abstractmethod
-    def update(self, name, inputer):
-        pass
-
-    @abstractmethod
-    def delete(self, name):
-        pass
-
-    @abstractmethod
-    def find(self, name):
-        pass
-
-    @abstractmethod
-    def find_all(self):
-        pass
-
-
-class FileCRUD:
-    def __init__(self, file_storage):
-        self._contacts = Contacts(file_storage)
+    _contacts = {}
 
     def create(self, name, phone):
         new_contact = Contact(name, phone)
@@ -232,7 +209,13 @@ class FileCRUD:
             raise ExContactBookEmpty('Phone book is empty.')
 
 
-class DBCRUD(FileCRUD):
+class FileCRUD(AbstractCRUD):
+    def __init__(self, file_storage):
+        self._contacts = Contacts(file_storage)
+
+
+
+class DBCRUD(AbstractCRUD):
     def __init__(self):
         self._contacts = DBContacts('phonebook')
 
