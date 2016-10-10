@@ -129,6 +129,11 @@ class DBContacts:
         import collections
         self.connection = sqlite3.connect(database='{}.sqlite3'.format(db_name))
         self.User = collections.namedtuple('User', 'name, phone')
+        import atexit
+        atexit.register(self.close)
+
+    def close(self):
+        self.connection.close()
 
     def append(self, p_object):
         rows = self.connection.execute("select * from phones  where name = '{}'".format(p_object.name))
