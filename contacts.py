@@ -211,7 +211,7 @@ class AbstractCRUD(ABC):
                 res.append(str(contact))
             return tuple(res)
         else:
-            raise ExContactBookEmpty('Phone book is empty.')
+            raise ExContactBookEmpty('Phone book is empty.', '')
 
 
 class FileCRUD(AbstractCRUD):
