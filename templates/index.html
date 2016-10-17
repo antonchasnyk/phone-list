@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mega phone book</title>
+</head>
+<body>
+<H1>My phone book</H1>
+<p>
+    {%block content%}
+    <p> <a href="/add">add new phone</a> </p>
+    {%for user in contacts%}
+    <p>{{user}}</p>
+    {%endfor%}
+    {%endblock%}
+</p>
+</body>
+</html>
