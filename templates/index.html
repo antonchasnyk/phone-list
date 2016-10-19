@@ -8,10 +8,13 @@
 <H1>My phone book</H1>
 <p>
     {%block content%}
-    <p> <a href="/add">add new phone</a> </p>
-    {%for user in contacts%}
-    <p>{{user}}</p>
-    {%endfor%}
+    <p> <a href="/add">add new phone</a></p>
+    <table>
+        {%for user in contacts%}
+        <tr><td width="150">{{user.user}}</td><td width="300">{{user.phone}}</td><td><a href="/edit/{{user.user}} ">[edit]</a></td>
+        <td><a href="/del/{{user.user}} ">[delete]</a> </td></tr>
+        {%endfor%}
+    </table>
     {%endblock%}
 </p>
 </body>

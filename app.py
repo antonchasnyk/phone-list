@@ -15,7 +15,9 @@ def before():
 @app.route('/')
 def index():
     contacts = g.m.find_all()
-    return render_template('index.html', contacts=contacts)
+    con = [ {'user': contact[0], 'phone': contact[1]} for contact in contacts ]
+    return render_template('index.html', contacts=con)
+
 
 @app.route('/add', methods={'GET', 'POST'})
 def add():
@@ -27,5 +29,23 @@ def add():
             g.m.create(user, phone)
             return redirect('/')
     return render_template('add.html', user=user, phone=phone)
+
+
+@app.route('/edit/<name>', methods={'GET', 'POST'})
+def edit(name):
+    phone = ''
+    if request.method == 'POST':
+        phone = request.form.get('phone')
+        if phone:
+            g.m.update(name, lambda x: phone)
+            return redirect('/')
+    return render_template('edit.html', phone=phone)
+
+@app.route('/del/<name>', methods={'GET', 'POST'})
+def delete(name):
+    if request.method == 'POST':
+        g.m.delete(name)
+        return redirect('/')
+    return render_template('del.html')
 
 app.run(debug=True) # run dev web server

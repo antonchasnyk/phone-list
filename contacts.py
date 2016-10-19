@@ -71,6 +71,9 @@ class Contact:
     def __str__(self):
         return '{:.<20}{:.>20}'.format(self.name, self.phone)
 
+    def tuple(self):
+        return self.name, self.phone
+
 
 class Contacts:
     def __init__(self, filename):
@@ -121,6 +124,7 @@ class Contacts:
 
     def __str__(self):
         return str([(name, self._contacts[name].phone) for name in self._contacts])
+
 
 
 class DBContacts:
@@ -202,13 +206,13 @@ class AbstractCRUD(ABC):
 
     def find(self, name):
         c = self._contacts[name]
-        return str(c)
+        return c.tutle()
 
     def find_all(self):
         if self._contacts:
             res = []
             for contact in sorted(self._contacts):
-                res.append(str(contact))
+                res.append(contact.tuple())
             return tuple(res)
         else:
             raise ExContactBookEmpty('Phone book is empty.', '')
